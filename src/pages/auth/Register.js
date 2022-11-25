@@ -149,11 +149,11 @@ const Register = () => {
               name="password2"
               value={password2}
               onChange={handleInputChange}
-              // onPaste={(e) => {
-              //   e.preventDefault();
-              //   toast.error("Cannot paste into input field");
-              //   return false;
-              // }}
+              onPaste={(e) => {
+                e.preventDefault();
+                toast.error("Cannot paste into input field");
+                return false;
+              }}
             />
 
             {/* Password Strength */}
