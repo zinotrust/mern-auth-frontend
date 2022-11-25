@@ -1,4 +1,10 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { toast } from "react-toastify";
+import authService from "./authService";
+import axios from "axios";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = `${BACKEND_URL}/api/users/`;
 
 const initialState = {
   isLoggedIn: false,
@@ -11,6 +17,24 @@ const initialState = {
   message: "",
 };
 
+// Register User
+export const register = createAsyncThunk(
+  "auth/register",
+  async (userData, thunkAPI) => {
+    try {
+      return await authService.register(userData);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -22,6 +46,27 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.message = "";
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(register.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.isLoggedIn = true;
+        state.user = action.payload;
+        toast.success("Registration Successful");
+        console.log(action.payload);
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        state.user = null;
+        toast.error(action.payload);
+      });
   },
 });
 
