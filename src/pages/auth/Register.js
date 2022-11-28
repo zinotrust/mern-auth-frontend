@@ -9,7 +9,11 @@ import styles from "./auth.module.scss";
 import { toast } from "react-toastify";
 import { validateEmail } from "../../redux/features/auth/authService";
 import { useDispatch, useSelector } from "react-redux";
-import { register, RESET } from "../../redux/features/auth/authSlice";
+import {
+  register,
+  RESET,
+  sendVerificationEmail,
+} from "../../redux/features/auth/authSlice";
 import Loader from "../../components/loader/Loader";
 
 const initialState = {
@@ -101,6 +105,7 @@ const Register = () => {
 
     // console.log(userData);
     await dispatch(register(userData));
+    await dispatch(sendVerificationEmail());
   };
 
   useEffect(() => {

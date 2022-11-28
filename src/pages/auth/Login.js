@@ -7,8 +7,14 @@ import Card from "../../components/card/Card";
 import Loader from "../../components/loader/Loader";
 import PasswordInput from "../../components/passwordInput/PasswordInput";
 import { validateEmail } from "../../redux/features/auth/authService";
-import { login, RESET } from "../../redux/features/auth/authSlice";
+import {
+  login,
+  loginWithGoogle,
+  RESET,
+  sendLoginCode,
+} from "../../redux/features/auth/authSlice";
 import styles from "./auth.module.scss";
+import { GoogleLogin } from "@react-oauth/google";
 
 const initialState = {
   email: "",
@@ -26,9 +32,8 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { isLoading, isLoggedIn, isSuccess, message } = useSelector(
-    (state) => state.auth
-  );
+  const { isLoading, isLoggedIn, isSuccess, message, isError, twoFactor } =
+    useSelector((state) => state.auth);
 
   const loginUser = async (e) => {
     e.preventDefault();
@@ -55,8 +60,20 @@ const Login = () => {
       navigate("/profile");
     }
 
+    if (isError && twoFactor) {
+      dispatch(sendLoginCode(email));
+      navigate(`/loginWithCode/${email}`);
+    }
+
     dispatch(RESET());
-  }, [isLoggedIn, isSuccess, dispatch, navigate]);
+  }, [isLoggedIn, isSuccess, dispatch, navigate, isError, twoFactor, email]);
+
+  const googleLogin = async (credentialResponse) => {
+    console.log(credentialResponse);
+    await dispatch(
+      loginWithGoogle({ userToken: credentialResponse.credential })
+    );
+  };
 
   return (
     <div className={`container ${styles.auth}`}>
@@ -68,7 +85,15 @@ const Login = () => {
           </div>
           <h2>Login</h2>
           <div className="--flex-center">
-            <button className="--btn --btn-google">Login With Google</button>
+            {/* <button className="--btn --btn-google">Login With Google
+            </button> */}
+            <GoogleLogin
+              onSuccess={googleLogin}
+              onError={() => {
+                console.log("Login Failed");
+                toast.error("Login Failed");
+              }}
+            />
           </div>
           <br />
           <p className="--text-center --fw-bold">or</p>
